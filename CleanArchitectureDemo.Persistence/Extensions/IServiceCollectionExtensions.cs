@@ -16,6 +16,7 @@ namespace CleanArchitectureDemo.Persistence.Extensions
             //services.AddMappings();
             services.AddDbContext(configuration);
             services.AddRepositories();
+            services.AddMemoryCache();
         }
 
         //private static void AddMappings(this IServiceCollection services)

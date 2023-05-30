@@ -6,22 +6,36 @@ using CleanArchitectureDemo.Shared;
 using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace CleanArchitectureDemo.WebAPI.Controllers
 {
     public class PlayersController : ApiControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IMemoryCache _memoryCache;
 
-        public PlayersController(IMediator mediator)
+        public PlayersController(IMediator mediator, IMemoryCache memoryCache
+            )
         {
             _mediator = mediator;
+            _memoryCache = memoryCache;
         }
 
         [HttpGet]
         public async Task<ActionResult<Result<List<GetAllPlayersDto>>>> Get()
         {
-            return await _mediator.Send(new GetAllPlayersQuery());
+            if (!_memoryCache.TryGetValue("Players", out Result<List<GetAllPlayersDto>> cacheValue))
+            {
+                cacheValue = await _mediator.Send(new GetAllPlayersQuery());
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromSeconds(3));
+
+                _memoryCache.Set("Players", cacheValue, cacheEntryOptions);
+                return cacheValue;
+            }
+            return _memoryCache.Get("Players") as Result<List<GetAllPlayersDto>>;
         }
 
         [HttpGet("{id}")]
