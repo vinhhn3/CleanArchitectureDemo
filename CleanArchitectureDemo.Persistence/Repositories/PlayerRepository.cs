@@ -23,7 +23,10 @@ namespace CleanArchitectureDemo.Persistence.Repositories
 
         public async Task<List<Player>> GetPlayersByClubAsync(int clubId)
         {
-            return await _repository.Entities.Where(x => x.ClubId == clubId).ToListAsync();
+            return _repository.Entities
+                .Where(x => x.ClubId == clubId)
+              .AsEnumerable().ToList();
+                
         }
     }
 }
